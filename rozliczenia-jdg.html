@@ -1,0 +1,459 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>Rozliczenia JDG</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: one column, sticky tab bar, summary before detail; data in mono, labels in sans. */
+:root{
+  --bg:#f6f7f4; --panel:#ffffff; --fg:#1b2420; --muted:#5f6b66; --line:#d9ded9;
+  --accent:#0f6e68; --accent-soft:#dff0ed; --ok:#2e7d4f; --warn:#b26b00; --crit:#b3261e; --warn-soft:#fff3df; --crit-soft:#fde8e6; --ok-soft:#e3f3ea;
+  --sans:"IBM Plex Sans",system-ui,sans-serif; --mono:"IBM Plex Mono",ui-monospace,Menlo,monospace;
+}
+@media (prefers-color-scheme: dark){ :root:not([data-theme="light"]){
+  --bg:#141917; --panel:#1d2421; --fg:#e8ece9; --muted:#9aa6a0; --line:#2f3934;
+  --accent:#5fc3bb; --accent-soft:#17332f; --ok:#6cc08f; --warn:#e5a84a; --crit:#f08b84; --warn-soft:#3a2d12; --crit-soft:#3e1f1d; --ok-soft:#173224; color-scheme:dark } }
+:root[data-theme="dark"]{
+  --bg:#141917; --panel:#1d2421; --fg:#e8ece9; --muted:#9aa6a0; --line:#2f3934;
+  --accent:#5fc3bb; --accent-soft:#17332f; --ok:#6cc08f; --warn:#e5a84a; --crit:#f08b84; --warn-soft:#3a2d12; --crit-soft:#3e1f1d; --ok-soft:#173224; color-scheme:dark }
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--fg);font-family:var(--sans);font-size:15px;line-height:1.45;padding-inline:16px;padding-block:0 40px;max-width:1080px;margin:0 auto}
+h1{font-size:1.25rem;font-weight:600;margin:0}
+h2{font-size:1rem;font-weight:600;margin:0 0 10px;text-wrap:balance}
+header{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:8px 16px;padding-block:18px 10px}
+header .sub{color:var(--muted);font-size:.85rem}
+nav{position:sticky;top:env(safe-area-inset-top,0px);background:var(--bg);display:flex;gap:4px;border-bottom:1px solid var(--line);margin-bottom:18px;overflow-x:auto;z-index:2}
+nav button{background:none;border:0;border-bottom:2px solid transparent;color:var(--muted);font:inherit;font-weight:500;padding:10px 12px;cursor:pointer;white-space:nowrap}
+nav button[aria-selected="true"]{color:var(--accent);border-bottom-color:var(--accent)}
+nav button:focus-visible,button:focus-visible,input:focus-visible,select:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+section[role="tabpanel"]{display:grid;gap:18px}
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:16px}
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:12px}
+.kpi{background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:12px 14px}
+.kpi .l{font-size:.75rem;text-transform:uppercase;letter-spacing:.06em;color:var(--muted)}
+.kpi .v{font-family:var(--mono);font-size:1.35rem;font-weight:500;margin-top:4px;font-variant-numeric:tabular-nums}
+.kpi .s{font-size:.8rem;color:var(--muted);margin-top:2px}
+.num{font-family:var(--mono);font-variant-numeric:tabular-nums;text-align:right;white-space:nowrap}
+table{width:100%;border-collapse:collapse;font-size:.9rem}
+th,td{padding:8px 8px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top}
+th{font-size:.75rem;text-transform:uppercase;letter-spacing:.05em;color:var(--muted);font-weight:500}
+th.num{text-align:right}
+tr.total td{font-weight:600;border-top:2px solid var(--line)}
+.tbl{overflow-x:auto}
+.pill{display:inline-block;font-size:.72rem;font-weight:500;padding:2px 8px;border-radius:999px;border:1px solid transparent;white-space:nowrap}
+.pill.ok{background:var(--ok-soft);color:var(--ok)}
+.pill.warn{background:var(--warn-soft);color:var(--warn)}
+.pill.crit{background:var(--crit-soft);color:var(--crit)}
+.pill.neutral{background:var(--accent-soft);color:var(--accent)}
+.deadline{display:grid;grid-template-columns:auto 1fr auto auto;gap:8px 14px;align-items:center;padding:10px 0;border-bottom:1px solid var(--line)}
+.deadline:last-child{border-bottom:0}
+.deadline .d{font-family:var(--mono);font-weight:500;font-variant-numeric:tabular-nums}
+.deadline .t{min-width:0}
+.deadline .t small{display:block;color:var(--muted);font-size:.8rem}
+.stripe{width:4px;align-self:stretch;border-radius:2px;background:var(--line)}
+.stripe.warn{background:var(--warn)} .stripe.crit{background:var(--crit)} .stripe.ok{background:var(--ok)}
+button.btn{font:inherit;font-weight:500;background:var(--accent);color:#fff;border:0;border-radius:6px;padding:8px 14px;cursor:pointer}
+button.btn.ghost{background:transparent;color:var(--accent);border:1px solid var(--accent)}
+button.btn.small{padding:4px 10px;font-size:.8rem}
+button.btn:disabled{opacity:.5;cursor:default}
+form.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px}
+label.f{display:grid;gap:4px;font-size:.8rem;color:var(--muted)}
+label.f input,label.f select{font:inherit;font-family:var(--mono);font-size:.9rem;color:var(--fg);background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:7px 9px;min-width:0;width:100%}
+label.f.wide{grid-column:1/-1}
+.actions{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-top:12px}
+.msg{font-size:.85rem;color:var(--muted)}
+.msg.err{color:var(--crit)}
+.empty{color:var(--muted);font-size:.9rem;padding:8px 0}
+details summary{cursor:pointer;font-weight:500;padding:6px 0}
+details{border-bottom:1px solid var(--line)}
+details:last-child{border-bottom:0}
+.month-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:12px;padding:8px 0 14px}
+.month-grid h3{font-size:.8rem;text-transform:uppercase;letter-spacing:.05em;color:var(--muted);margin:0 0 6px;font-weight:500}
+.kv{display:flex;justify-content:space-between;gap:12px;padding:3px 0;font-size:.9rem}
+.kv.sum{font-weight:600;border-top:1px solid var(--line);margin-top:4px;padding-top:6px}
+.note{font-size:.8rem;color:var(--muted);margin-top:8px}
+.todo{display:grid;grid-template-columns:auto 1fr auto;gap:8px 10px;align-items:center;padding:6px 0;border-bottom:1px solid var(--line)}
+.todo:last-child{border-bottom:0}
+.todo input[type=checkbox]{width:18px;height:18px;accent-color:var(--accent)}
+.todo input[type=text]{font:inherit;color:var(--fg);background:transparent;border:0;border-bottom:1px dashed transparent;padding:4px 2px;min-width:0;width:100%}
+.todo input[type=text]:hover,.todo input[type=text]:focus{border-bottom-color:var(--line);outline:none;background:var(--bg)}
+.todo.done input[type=text]{text-decoration:line-through;color:var(--muted)}
+.todo .x{background:none;border:0;color:var(--muted);cursor:pointer;font-size:1rem;padding:2px 6px}
+.todo .x:hover{color:var(--crit)}
+@media (max-width:520px){ .deadline{grid-template-columns:auto 1fr;grid-auto-rows:auto} .deadline .num{grid-column:2;text-align:left} }
+@media (prefers-reduced-motion:no-preference){ nav button{transition:color .15s,border-color .15s} }
+</style>
+
+<header>
+  <div><h1>Rozliczenia JDG</h1><div class="sub" id="subtitle">VAT miesięczny · pełny ZUS · klient Link Group / EY</div></div>
+  <div class="msg" id="status">Łączę z bazą…</div>
+</header>
+<nav role="tablist">
+  <button role="tab" aria-selected="true" data-tab="pulpit">Pulpit</button>
+  <button role="tab" aria-selected="false" data-tab="faktury">Faktury</button>
+  <button role="tab" aria-selected="false" data-tab="miesiace">Miesiące</button>
+  <button role="tab" aria-selected="false" data-tab="ustawienia">Ustawienia</button>
+</nav>
+
+<section role="tabpanel" id="tab-pulpit">
+  <div class="kpis" id="kpis"></div>
+  <div class="panel"><h2>Najbliższe terminy</h2><div id="deadlines"><div class="empty">Terminy pojawią się po pierwszej fakturze.</div></div></div>
+  <div class="panel">
+    <div style="display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:8px;margin-bottom:10px"><h2 style="margin:0">Do zrobienia</h2>
+     <div class="actions" style="margin:0"><button class="btn small ghost" type="button" id="todoPrev" aria-label="Poprzedni miesiąc">‹</button><span class="num" id="todoMonth" style="min-width:90px;text-align:center"></span><button class="btn small ghost" type="button" id="todoNext" aria-label="Następny miesiąc">›</button></div></div>
+    <form id="todo"></form>
+    <div class="actions"><button class="btn small ghost" type="button" id="todoAdd">+ Dodaj punkt</button><button class="btn small ghost" type="button" id="todoReset">Przywróć domyślne</button><span class="msg" id="todoMsg"></span></div>
+  </div>
+</section>
+
+<section role="tabpanel" id="tab-faktury" hidden>
+  <div class="panel">
+    <h2>Faktury sprzedaży</h2>
+    <div class="tbl"><table><thead><tr><th>Numer</th><th>Sprzedaż</th><th>Wystawiona</th><th class="num">Godz.</th><th class="num">Netto</th><th class="num">VAT</th><th class="num">Brutto</th><th>Termin</th><th>Status</th><th></th></tr></thead><tbody id="invRows"></tbody></table></div>
+    <div id="invEmpty" class="empty">Brak faktur. Dodaj pierwszą poniżej albo pobierz z Fakturowni.</div>
+  </div>
+  <div class="panel">
+    <h2>Dodaj fakturę ręcznie</h2>
+    <form class="grid" id="invForm">
+      <label class="f">Numer<input id="f_number" placeholder="FV/1/09/2026" required></label>
+      <label class="f">Data sprzedaży<input id="f_sale" type="date" required></label>
+      <label class="f">Data wystawienia<input id="f_issue" type="date" required></label>
+      <label class="f">Godziny<input id="f_hours" type="number" step="0.5" min="0" required></label>
+      <label class="f">Stawka netto / h<input id="f_rate" type="number" step="0.01"></label>
+      <label class="f">Termin płatności<input id="f_due" type="date"></label>
+      <div class="actions" style="grid-column:1/-1"><button class="btn" type="submit">Zapisz fakturę</button><span class="msg" id="invMsg"></span></div>
+    </form>
+  </div>
+  <div class="panel">
+    <h2>Fakturownia</h2>
+    <p class="msg">Pobiera faktury z konta <span class="num" id="subLabel">—</span>.fakturownia.pl i uzupełnia statusy płatności. Token API jest zapisany tylko w tej przeglądarce.</p>
+    <div class="actions"><button class="btn ghost" id="syncBtn" type="button">Pobierz faktury z Fakturowni</button><span class="msg" id="syncMsg"></span></div>
+    <div id="pasteBox" style="margin-top:14px">
+      <p class="msg">Przeglądarka blokuje bezpośrednie pobranie z API (CORS), więc import idzie przez schowek: <a id="apiLink" href="#" target="_blank" rel="noopener">otwórz listę faktur z Fakturowni (JSON)</a>, zaznacz wszystko (Ctrl+A), skopiuj (Ctrl+C) i wklej poniżej.</p>
+      <label class="f">Wklej JSON z Fakturowni<textarea id="pasteJson" rows="4" style="font:inherit;font-family:var(--mono);font-size:.8rem;color:var(--fg);background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:7px 9px;width:100%;min-width:0"></textarea></label>
+      <div class="actions"><button class="btn" id="importBtn" type="button">Importuj wklejone faktury</button><span class="msg" id="importMsg"></span></div>
+    </div>
+  </div>
+</section>
+
+<section role="tabpanel" id="tab-miesiace" hidden>
+  <div class="panel"><h2>Rozliczenie miesiąc po miesiącu</h2><div id="months"><div class="empty">Miesiące pojawią się po pierwszej fakturze.</div></div>
+  <p class="note">Zapłacone składki odliczane w danym miesiącu to składki za miesiąc poprzedni (płatne do 20.). Próg zdrowotnej: przychód narastająco minus zapłacone składki społeczne narastająco. Terminy przesunięte o weekendy i święta.</p></div>
+</section>
+
+<section role="tabpanel" id="tab-ustawienia" hidden>
+  <div class="panel">
+    <h2>Dane stałe</h2>
+    <form class="grid" id="setForm">
+      <label class="f">Stawka godzinowa netto<input id="s_rate" type="number" step="0.01"></label>
+      <label class="f">Termin płatności (dni od KSeF)<input id="s_due" type="number" step="1"></label>
+      <label class="f">Data rozpoczęcia działalności<input id="s_start" type="date"></label>
+      <label class="f">Dobrowolne chorobowe od (puste = od początku)<input id="s_chorod" type="date"></label>
+      <label class="f">Numer rachunku składkowego ZUS (NRS)<input id="s_nrs" placeholder="23 6000 0002 ..."></label>
+      <label class="f">Mikrorachunek podatkowy (PIT, VAT)<input id="s_mikro" placeholder="PL50 1010 0071 ..."></label>
+      <label class="f">Subdomena Fakturowni<input id="s_sub" placeholder="nazwa"></label>
+      <label class="f">Token API Fakturowni (tylko ta przeglądarka)<input id="s_token" type="password" autocomplete="off"></label>
+      <div class="actions" style="grid-column:1/-1"><button class="btn" type="submit">Zapisz dane stałe</button><span class="msg" id="setMsg"></span></div>
+    </form>
+  </div>
+  <div class="panel">
+    <h2>Stawki na rok <select id="y_year" style="font:inherit"></select></h2>
+    <form class="grid" id="yearForm">
+      <label class="f">Forma opodatkowania<select id="y_form"><option value="ryczalt">ryczałt od przychodów</option><option value="liniowy">podatek liniowy 19%</option></select></label>
+      <label class="f">Stawka ryczałtu (%)<input id="y_ryczalt" type="number" step="0.1"></label>
+      <label class="f">Stawka liniowa (%)<input id="y_liniowy" type="number" step="0.1"></label>
+      <label class="f">Stawka VAT (%)<input id="y_vat" type="number" step="1"></label>
+      <label class="f">Podstawa składek społecznych<input id="y_base" type="number" step="0.01"></label>
+      <label class="f">Przeciętne wynagrodzenie (zdrowotna, ryczałt)<input id="y_avg" type="number" step="0.01"></label>
+      <label class="f">Minimalne wynagrodzenie (min. zdrowotna, liniowy)<input id="y_minwage" type="number" step="0.01"></label>
+      <label class="f">Roczny limit odliczenia zdrowotnej (liniowy)<input id="y_hlimit" type="number" step="0.01"></label>
+      <label class="f">Chorobowe<select id="y_chor"><option value="1">tak</option><option value="0">nie</option></select></label>
+      <div class="actions" style="grid-column:1/-1"><button class="btn" type="submit">Zapisz stawki roku</button><button class="btn ghost" type="button" id="y_copy">Skopiuj z poprzedniego roku</button><span class="msg" id="yearMsg"></span></div>
+    </form>
+    <p class="note">Każdy rok ma własne stawki — zmiana na 2027 nie przelicza 2026. Zmianę formy opodatkowania zgłaszasz do 20 lutego (CEIDG). Przy liniowym: PIT 19% od dochodu narastająco, zdrowotna 4,9% dochodu z poprzedniego miesiąca (min. 9% minimalnego wynagrodzenia), zapłacona zdrowotna odliczana od dochodu do limitu rocznego. Sprawdź limit i minimalne wynagrodzenie w styczniu.</p>
+    <p class="note">Składki: emerytalna 19,52%, rentowa 8%, chorobowa 2,45%, wypadkowa 1,67%, FP+FS 2,45%. Zdrowotna na ryczałcie: 60% / 100% / 180% podstawy × 9% wg progów 60 000 i 300 000 zł.</p>
+  </div>
+</section>
+
+<script>
+(function(){
+"use strict";
+const $=s=>document.querySelector(s);
+const fmt=n=>(Math.round((n||0)*100)/100).toLocaleString("pl-PL",{minimumFractionDigits:2,maximumFractionDigits:2})+" zł";
+const r2=n=>Math.round(n*100)/100;
+const iso=d=>d.toISOString().slice(0,10);
+const localToday=()=>{const d=new Date();return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0");};
+const pdate=s=>{const [y,m,d]=s.split("-").map(Number);return new Date(Date.UTC(y,m-1,d));};
+const fdate=s=>s?s.split("-").reverse().join("."):"—";
+const ym=s=>s.slice(0,7);
+const MONTHS=["sty","lut","mar","kwi","maj","cze","lip","sie","wrz","paź","lis","gru"];
+const monthLabel=k=>{const [y,m]=k.split("-");return MONTHS[+m-1]+" "+y;};
+
+const DEFAULTS={rate:160,dueDays:10,start:"2026-09-17",sub:""};
+const YEAR_DEFAULTS={form:"ryczalt",ryczalt:12,liniowy:19,vat:23,base:5652,avg:9228.64,minWage:4806,healthLimit:12900,chorobowe:1};
+let settings={...DEFAULTS}, years={}, invoices=[], payments={}, checklists={}, db=null, token="", pendingRender=false, selYear=null, todoMonth=null;
+function yearCfg(y){ if(years[y]) return {...YEAR_DEFAULTS,...years[y]}; const prev=Object.keys(years).filter(k=>k<y).sort().pop(); return {...YEAR_DEFAULTS,...(prev?years[prev]:{}),_inherited:true}; }
+try{ token=localStorage.getItem("fakturownia_token")||""; }catch(e){}
+
+/* ---- Polish holidays & deadline shifting ---- */
+function easter(y){const a=y%19,b=Math.floor(y/100),c=y%100,d=Math.floor(b/4),e=b%4,f=Math.floor((b+8)/25),g=Math.floor((b-f+1)/3),h=(19*a+b-d-g+15)%30,i=Math.floor(c/4),k=c%4,l=(32+2*e+2*i-h-k)%7,m=Math.floor((a+11*h+22*l)/451),mo=Math.floor((h+l-7*m+114)/31),da=((h+l-7*m+114)%31)+1;return new Date(Date.UTC(y,mo-1,da));}
+function holidays(y){const e=easter(y);const add=(d,n)=>{const x=new Date(d);x.setUTCDate(x.getUTCDate()+n);return iso(x);};
+ return new Set([`${y}-01-01`,`${y}-01-06`,`${y}-05-01`,`${y}-05-03`,`${y}-08-15`,`${y}-11-01`,`${y}-11-11`,`${y}-12-24`,`${y}-12-25`,`${y}-12-26`,add(e,1),add(e,60)]);}
+function shiftWorkday(d){const h=holidays(d.getUTCFullYear());while(d.getUTCDay()===0||d.getUTCDay()===6||h.has(iso(d))){d.setUTCDate(d.getUTCDate()+1);}return d;}
+function deadline(monthKey,day){const [y,m]=monthKey.split("-").map(Number);return iso(shiftWorkday(new Date(Date.UTC(y,m,day))));}
+function daysInMonth(k){const [y,m]=k.split("-").map(Number);return new Date(Date.UTC(y,m,0)).getUTCDate();}
+function addMonths(k,n){const [y,m]=k.split("-").map(Number);const d=new Date(Date.UTC(y,m-1+n,1));return iso(d).slice(0,7);}
+
+/* ---- the calculator (same logic as the spreadsheet) ---- */
+function social(baseFull,days,dim,chor){const b=r2(baseFull*days/dim);
+ const em=r2(b*0.1952),re=r2(b*0.08),ch=chor?r2(b*0.0245):0,wy=r2(b*0.0167),fp=r2(b*0.0245);
+ return {base:b,em,re,ch,wy,fp,total:r2(em+re+ch+wy+fp),deductible:r2(em+re+ch+wy)};}
+function health(thresholdBase,avg){const p1=r2(avg*0.6*0.09),p2=r2(avg*0.09),p3=r2(avg*1.8*0.09);return thresholdBase<=60000?p1:thresholdBase<=300000?p2:p3;}
+function computeMonths(){
+ if(!settings.start) return [];
+ const first=ym(settings.start); const today=localToday(); let last=ym(today);
+ for(const i of invoices){ if(ym(i.saleDate)>last) last=ym(i.saleDate); }
+ const out=[]; let cumRev=0,cumSocPaid=0,cumIncome=0,cumPit=0,cumHealthDeduct=0,prev=null; let k=first;
+ while(k<=last){
+  const y=yearCfg(k.slice(0,4)); const form=y.form||"ryczalt";
+  const inv=invoices.filter(i=>ym(i.saleDate)===k);
+  const net=r2(inv.reduce((s,i)=>s+i.net,0)), vat=r2(inv.reduce((s,i)=>s+i.vat,0));
+  const dim=daysInMonth(k); const startD=pdate(settings.start);
+  const days=(k===first)?dim-startD.getUTCDate()+1:dim;
+  const chorOn=y.chorobowe==1&&(!settings.chorobOd||k>=ym(settings.chorobOd));
+  const soc=social(y.base,days,dim,chorOn);
+  const pay=payments[k]||{};
+  const socPaid = pay.socPaid!=null ? +pay.socPaid : (prev?prev.soc.deductible:0);
+  const healthPaid = pay.healthPaid!=null ? +pay.healthPaid : (prev?prev.health:0);
+  const yearStart = prev && k.slice(0,4)!==prev.key.slice(0,4);
+  if(yearStart){cumRev=0;cumSocPaid=0;cumIncome=0;cumPit=0;cumHealthDeduct=0;}
+  const costs=+(pay.costs||0);
+  let h,pitBase=0,pit=0,thresholdBase=0,healthDeduct=0,incomeYtd=0,healthTopUp=0;
+  if(form==="liniowy"){
+   const prevIncome=prev?Math.max(prev.net-prev.costs-prev.socPaid,0):Math.max(net-costs-socPaid,0);
+   h=Math.max(r2(prevIncome*0.049),r2(y.minWage*0.09));
+   healthDeduct=Math.min(healthPaid,Math.max(y.healthLimit-cumHealthDeduct,0));
+   const income=net-costs-socPaid-healthDeduct;
+   incomeYtd=r2(cumIncome+income);
+   const taxYtd=Math.round(Math.max(incomeYtd,0)*y.liniowy/100);
+   pit=Math.max(taxYtd-cumPit,0); pitBase=Math.max(income,0);
+  } else {
+   thresholdBase=r2(cumRev+net-cumSocPaid-socPaid);
+   h=health(thresholdBase,y.avg);
+   pitBase=Math.max(net-socPaid-r2(healthPaid*0.5),0);
+   pit=Math.round(pitBase*y.ryczalt/100);
+  }
+  const vatIn=+(pay.vatIn||0); const vatDue=Math.max(r2(vat-vatIn),0);
+  const m={key:k,y,form,net,vat,gross:r2(net+vat),days,dim,soc,socPaid,healthPaid,thresholdBase,health:h,zus:r2(soc.total+h),pitBase,pit,costs,healthDeduct,incomeYtd,vatIn,vatDue,
+   d20:deadline(k,20),d25:deadline(k,25),pay,invoices:inv};
+  m.reserve=r2(m.zus+pit+vatDue);
+  out.push(m); cumRev+=net; cumSocPaid+=socPaid; cumIncome=incomeYtd; cumPit+=pit; cumHealthDeduct+=healthDeduct; prev=m; k=addMonths(k,1);
+ }
+ // ryczałt: annual health top-up reserve — months paid at a lower bracket than the year's current bracket
+ const byYear={};
+ for(const m of out){ if(m.form!=="ryczalt")continue; (byYear[m.key.slice(0,4)]=byYear[m.key.slice(0,4)]||[]).push(m); }
+ for(const yr in byYear){ const ms=byYear[yr]; const lastM=ms[ms.length-1]; const bracketNow=lastM.health; let acc=0;
+  for(const m of ms){ if(bracketNow>m.health) acc=r2(acc+(bracketNow-m.health)); m.healthTopUp=acc; } }
+ return out;
+}
+
+/* ---- render ---- */
+function render(){
+ const ae=document.activeElement; if(ae&&ae.closest&&ae.closest("form")&&ae.tagName!=="BUTTON"){pendingRender=true;return;}
+ pendingRender=false;
+ const months=computeMonths(); const today=localToday();
+ const year=today.slice(0,4);
+ const yNet=months.filter(m=>m.key.startsWith(year)).reduce((s,m)=>s+m.net,0);
+ const yPaid=months.filter(m=>m.key.startsWith(year)).reduce((s,m)=>s+(m.pay.zusPaid?m.zus:0)+(m.pay.pitPaid?m.pit:0)+(m.pay.vatPaid?m.vatDue:0),0);
+ const unpaid=invoices.filter(i=>!i.paid); const overdue=unpaid.filter(i=>i.dueDate&&i.dueDate<today);
+ const cur=months.find(m=>m.key===ym(today))||months[months.length-1];
+ const last=months[months.length-1];
+ const ycfg=yearCfg(year); $("#subtitle").textContent=(ycfg.form==="liniowy"?"podatek liniowy 19%":"ryczałt "+ycfg.ryczalt+"%")+" · VAT miesięczny · pełny ZUS · klient Link Group / EY";
+ const topUp=last&&last.form==="ryczalt"?(last.healthTopUp||0):0;
+ $("#kpis").innerHTML=[
+  ["Przychód netto "+year,fmt(yNet),months.length+" mies."],
+  ["Nieopłacone faktury",fmt(unpaid.reduce((s,i)=>s+i.gross,0)),overdue.length?`<span class="pill crit">${overdue.length} po terminie</span>`:unpaid.length+" szt."],
+  ["Zapłacone daniny "+year,fmt(yPaid),"ZUS + PIT + VAT"],
+  last&&last.form==="liniowy"?["Dochód narastająco",fmt(last.incomeYtd),"podstawa PIT 19%"]:["Próg zdrowotnej",last?fmt(last.thresholdBase):"—",last?(last.thresholdBase<=60000?"próg I (do 60 tys.)":last.thresholdBase<=300000?"próg II (do 300 tys.)":"próg III")+(topUp?` · rezerwa na dopłatę ${fmt(topUp)}`:""):""],
+ ].map(([l,v,s])=>`<div class="kpi"><div class="l">${l}</div><div class="v">${v}</div><div class="s">${s}</div></div>`).join("");
+
+ // deadlines: upcoming within 60 days or overdue & unpaid
+ const items=[];
+ for(const i of unpaid){ items.push({date:i.dueDate||i.issueDate,title:`Wpływ od Link Group — ${i.number}`,sub:`faktura za ${monthLabel(ym(i.saleDate))}`,amount:i.gross,kind:"in"}); }
+ for(const m of months){
+  const per=m.key.slice(2,4)+"M"+m.key.slice(5);
+  if(!m.pay.zusPaid) items.push({date:m.d20,title:`ZUS za ${monthLabel(m.key)}`,sub:"DRA + przelew na NRS "+(settings.nrs||""),amount:m.zus,kind:"zus",m});
+  if(!m.pay.pitPaid&&m.pit>0) items.push({date:m.d20,title:`${m.form==="liniowy"?"Zaliczka PIT":"Ryczałt PIT"} za ${monthLabel(m.key)}`,sub:`${settings.mikro||"mikrorachunek"} · symbol ${m.form==="liniowy"?"PIT-5L":"PPE"} · okres ${per}`,amount:m.pit,kind:"pit",m});
+  if(!m.pay.vatPaid&&m.net>0) items.push({date:m.d25,title:`JPK_V7M + VAT za ${monthLabel(m.key)}`,sub:`e-mikrofirma · ${settings.mikro||"mikrorachunek"} · symbol VAT-7 · okres ${per}`,amount:m.vatDue,kind:"vat",m});
+ }
+ items.sort((a,b)=>a.date.localeCompare(b.date));
+ const horizon=iso(new Date(pdate(today).getTime()+60*864e5));
+ const shown=items.filter(x=>x.date<=horizon);
+ $("#deadlines").innerHTML=shown.length?shown.map(x=>{
+  const days=Math.round((pdate(x.date)-pdate(today))/864e5);
+  const cls=days<0?"crit":days<=5?"warn":"ok";
+  const when=days<0?`${-days} dni po terminie`:days===0?"dziś":`za ${days} dni`;
+  const mark=x.m?`<button class="btn small ghost" data-pay="${x.kind}" data-month="${x.m.key}">Zapłacone</button>`:`<button class="btn small ghost" data-paidinv="${x.number||''}" data-title="${x.title}">Wpłynęło</button>`;
+  return `<div class="deadline"><div class="stripe ${cls}"></div><div class="t"><div class="d">${fdate(x.date)} <span class="pill ${cls}">${when}</span></div>${x.title}<small>${x.sub}</small></div><div class="num">${fmt(x.amount)}</div><div>${mark}</div></div>`;
+ }).join(""):`<div class="empty">Nic pilnego w ciągu 60 dni.</div>`;
+ $("#deadlines").querySelectorAll("[data-pay]").forEach(b=>b.addEventListener("click",()=>markPaid(b.dataset.month,b.dataset.pay)));
+ $("#deadlines").querySelectorAll("[data-paidinv]").forEach(b=>b.addEventListener("click",()=>{const inv=unpaid.find(i=>b.dataset.title.endsWith(i.number));if(inv)setInvoicePaid(inv,true);}));
+
+ // checklist (editable, per month)
+ if(!todoMonth) todoMonth=ym(today);
+ renderTodo(months);
+
+ // invoices
+ $("#invRows").innerHTML=invoices.slice().sort((a,b)=>b.saleDate.localeCompare(a.saleDate)).map(i=>{
+  const st=i.paid?`<span class="pill ok">opłacona ${fdate(i.paidDate)}</span>`:(i.dueDate&&i.dueDate<today?`<span class="pill crit">po terminie</span>`:`<span class="pill warn">czeka</span>`);
+  return `<tr><td>${i.number}${i.source==="fakturownia"?' <span class="pill neutral">Fakturownia</span>':''}${i.ksef==="ok"?' <span class="pill ok" title="${i.ksefId||""}">KSeF</span>':i.ksef?` <span class="pill warn">KSeF: ${i.ksef}</span>`:''}</td><td>${fdate(i.saleDate)}</td><td>${fdate(i.issueDate)}</td><td class="num">${i.hours||"—"}</td><td class="num">${fmt(i.net)}</td><td class="num">${fmt(i.vat)}</td><td class="num">${fmt(i.gross)}</td><td>${fdate(i.dueDate)}</td><td>${st}</td><td><button class="btn small ghost" data-toggle="${i.id}">${i.paid?"Cofnij":"Opłacona"}</button> <button class="btn small ghost" data-del="${i.id}">Usuń</button></td></tr>`;
+ }).join("");
+ $("#invEmpty").hidden=invoices.length>0;
+ $("#invRows").querySelectorAll("[data-toggle]").forEach(b=>b.addEventListener("click",()=>{const inv=invoices.find(i=>i.id===b.dataset.toggle);setInvoicePaid(inv,!inv.paid);}));
+ $("#invRows").querySelectorAll("[data-del]").forEach(b=>b.addEventListener("click",async()=>{if(!db)return;if(b.textContent!=="Na pewno?"){b.textContent="Na pewno?";return;}await db.doc("invoices/"+b.dataset.del).delete();}));
+
+ // months
+ $("#months").innerHTML=months.length?months.slice().reverse().map(m=>`<details ${m.key===ym(today)||m===last?"open":""}><summary>${monthLabel(m.key)} — netto ${fmt(m.net)} · do odłożenia ${fmt(m.reserve)} ${m.pay.zusPaid&&m.pay.pitPaid&&m.pay.vatPaid?'<span class="pill ok">rozliczony</span>':''}</summary>
+ <div class="month-grid">
+  <div><h3>Faktura</h3>${m.invoices.map(i=>`<div class="kv"><span>${i.number}</span><span class="num">${fmt(i.gross)}</span></div>`).join("")||'<div class="kv"><span>brak faktury</span><span></span></div>'}<div class="kv"><span>Netto</span><span class="num">${fmt(m.net)}</span></div><div class="kv"><span>VAT należny</span><span class="num">${fmt(m.vat)}</span></div></div>
+  <div><h3>ZUS (${m.days}/${m.dim} dni${m.soc.ch?"":", bez chorobowego"})</h3><div class="kv"><span>Emerytalna</span><span class="num">${fmt(m.soc.em)}</span></div><div class="kv"><span>Rentowa</span><span class="num">${fmt(m.soc.re)}</span></div><div class="kv"><span>Chorobowa</span><span class="num">${fmt(m.soc.ch)}</span></div><div class="kv"><span>Wypadkowa</span><span class="num">${fmt(m.soc.wy)}</span></div><div class="kv"><span>FP + FS</span><span class="num">${fmt(m.soc.fp)}</span></div><div class="kv"><span>Zdrowotna ${m.form==="liniowy"?"(4,9% dochodu)":"(próg "+(m.thresholdBase<=60000?"I":m.thresholdBase<=300000?"II":"III")+")"}</span><span class="num">${fmt(m.health)}</span></div><div class="kv sum"><span>Razem do ${fdate(m.d20)}</span><span class="num">${fmt(m.zus)}</span></div></div>
+  <div>${m.form==="liniowy"
+   ?`<h3>PIT liniowy 19%</h3><div class="kv"><span>Przychód</span><span class="num">${fmt(m.net)}</span></div><div class="kv"><span>− koszty</span><span class="num">${fmt(m.costs)}</span></div><div class="kv"><span>− społeczne zapłacone</span><span class="num">${fmt(m.socPaid)}</span></div><div class="kv"><span>− zdrowotna zapłacona (do limitu)</span><span class="num">${fmt(m.healthDeduct)}</span></div><div class="kv"><span>Dochód narastająco</span><span class="num">${fmt(m.incomeYtd)}</span></div><div class="kv sum"><span>Zaliczka do ${fdate(m.d20)}</span><span class="num">${fmt(m.pit)}</span></div>`
+   :`<h3>Ryczałt PIT ${m.y.ryczalt}%</h3><div class="kv"><span>Przychód</span><span class="num">${fmt(m.net)}</span></div><div class="kv"><span>− społeczne zapłacone</span><span class="num">${fmt(m.socPaid)}</span></div><div class="kv"><span>− 50% zdrowotnej zapłaconej</span><span class="num">${fmt(m.healthPaid*0.5)}</span></div><div class="kv"><span>Podstawa</span><span class="num">${fmt(m.pitBase)}</span></div><div class="kv sum"><span>${m.y.ryczalt}% do ${fdate(m.d20)}</span><span class="num">${fmt(m.pit)}</span></div>`}</div>
+  <div><h3>VAT (JPK_V7M)</h3><div class="kv"><span>Należny</span><span class="num">${fmt(m.vat)}</span></div><div class="kv"><span>Naliczony</span><span class="num">${fmt(m.vatIn)}</span></div><div class="kv sum"><span>Do zapłaty do ${fdate(m.d25)}</span><span class="num">${fmt(m.vatDue)}</span></div><div class="kv sum"><span>Razem do odłożenia</span><span class="num">${fmt(m.reserve)}</span></div><div class="kv"><span>Zostaje z faktury</span><span class="num">${fmt(m.gross-m.reserve)}</span></div>${m.healthTopUp?`<div class="kv"><span>Rezerwa na dopłatę zdrowotnej (narastająco)</span><span class="num">${fmt(m.healthTopUp)}</span></div>`:""}</div>
+ </div>
+ <form class="grid" data-month="${m.key}" style="padding-bottom:14px">
+  <label class="f">VAT naliczony (zakupy)<input name="vatIn" type="number" step="0.01" value="${m.pay.vatIn??""}"></label>
+  <label class="f">Koszty netto (liniowy)<input name="costs" type="number" step="0.01" value="${m.pay.costs??""}"></label>
+  <label class="f">Społeczne zapłacone w tym mies. (nadpisz)<input name="socPaid" type="number" step="0.01" value="${m.pay.socPaid??""}" placeholder="${m.socPaid}"></label>
+  <label class="f">Zdrowotna zapłacona w tym mies. (nadpisz)<input name="healthPaid" type="number" step="0.01" value="${m.pay.healthPaid??""}" placeholder="${m.healthPaid}"></label>
+  <div class="actions" style="grid-column:1/-1">
+   <button class="btn small" type="submit">Zapisz miesiąc</button>
+   <button class="btn small ghost" type="button" data-pay="zus" data-month="${m.key}">${m.pay.zusPaid?"ZUS ✓":"ZUS zapłacony"}</button>
+   <button class="btn small ghost" type="button" data-pay="pit" data-month="${m.key}">${m.pay.pitPaid?"PIT ✓":"PIT zapłacony"}</button>
+   <button class="btn small ghost" type="button" data-pay="vat" data-month="${m.key}">${m.pay.vatPaid?"VAT ✓":"VAT + JPK zapłacony"}</button>
+  </div>
+ </form></details>`).join(""):`<div class="empty">Miesiące pojawią się po pierwszej fakturze.</div>`;
+ $("#months").querySelectorAll("form[data-month]").forEach(f=>{
+  f.addEventListener("submit",async e=>{e.preventDefault();if(!db)return;const k=f.dataset.month;const cur=payments[k]||{};const v=n=>{const x=f.querySelector(`[name=${n}]`).value;return x===""?null:+x;};
+   const body={...cur,vatIn:v("vatIn")??0,costs:v("costs")??0};const sp=v("socPaid");const hp=v("healthPaid");
+   if(sp==null)delete body.socPaid;else body.socPaid=sp; if(hp==null)delete body.healthPaid;else body.healthPaid=hp;
+   await db.doc("payments/"+k).set(body);});
+  f.querySelectorAll("[data-pay]").forEach(b=>b.addEventListener("click",()=>markPaid(b.dataset.month,b.dataset.pay,true)));
+ });
+
+ // settings forms
+ $("#s_rate").value=settings.rate;$("#s_due").value=settings.dueDays;$("#s_start").value=settings.start;$("#s_chorod").value=settings.chorobOd||"";$("#s_nrs").value=settings.nrs||"";$("#s_mikro").value=settings.mikro||"";$("#s_sub").value=settings.sub||"";
+ $("#subLabel").textContent=settings.sub||"—"; $("#f_rate").placeholder=settings.rate; refreshApiLink();
+ const yrs=new Set([...Object.keys(years),year,String(+year+1)]); months.forEach(m=>yrs.add(m.key.slice(0,4)));
+ if(!selYear) selYear=year;
+ $("#y_year").innerHTML=[...yrs].sort().map(y=>`<option value="${y}" ${y===selYear?"selected":""}>${y}${years[y]?"":" (brak — dziedziczy)"}</option>`).join("");
+ fillYearForm();
+}
+
+function defaultChecklist(k,months){
+ const prevKey=addMonths(k,-1); const pm=months.find(m=>m.key===prevKey); const pinv=invoices.find(i=>ym(i.saleDate)===prevKey);
+ const items=[`Wygenerować raport miesięczny za ${monthLabel(prevKey)} w systemie EY`,
+  `Raport godzin za ${monthLabel(prevKey)} → akceptacja EY → billing@linkgroup.pl`,
+  `Faktura za ${monthLabel(prevKey)} w Fakturowni → KSeF (data sprzedaży ${fdate(prevKey+"-"+daysInMonth(prevKey))})`+(pinv?` — wystawiona ${fdate(pinv.issueDate)}`:"")];
+ if(pm){ items.push(`Po wpływie od Link Group odłożyć ${fmt(pm.reserve)} (ZUS + PIT + VAT)`);
+  items.push(`Do ${fdate(pm.d20)}: złożyć ZUS DRA za ${monthLabel(prevKey)} (PUE/eZUS)`);
+  items.push(`Do ${fdate(pm.d20)}: przelew ZUS ${fmt(pm.zus)} na NRS`);
+  if(pm.pit>0) items.push(`Do ${fdate(pm.d20)}: przelew ${pm.form==="liniowy"?"zaliczki PIT":"ryczałtu PIT"} ${fmt(pm.pit)} na mikrorachunek (symbol ${pm.form==="liniowy"?"PIT-5L":"PPE"}, okres ${prevKey.slice(2,4)}M${prevKey.slice(5)})`);
+  if(pm.net>0){ items.push(`Do ${fdate(pm.d25)}: wysłać JPK_V7M za ${monthLabel(prevKey)} (e-mikrofirma) i pobrać UPO`); items.push(`Do ${fdate(pm.d25)}: przelew VAT ${fmt(pm.vatDue)} na mikrorachunek (symbol VAT-7, okres ${prevKey.slice(2,4)}M${prevKey.slice(5)})`); }
+  if(pm.healthTopUp) items.push(`Rezerwa na roczną dopłatę zdrowotnej: ${fmt(pm.healthTopUp)}`); }
+ if(k.slice(5)==="01") items.push("Zaktualizować stawki na nowy rok (Ustawienia) i sprawdzić formę opodatkowania (do 20 lutego)");
+ if(k.slice(5)==="04") items.push("PIT-28 / PIT-36L za poprzedni rok — do 30 kwietnia");
+ if(k.slice(5)==="05") items.push("Roczne rozliczenie składki zdrowotnej w ZUS — do 20 maja");
+ return items.map((t,i)=>({id:"d"+i,text:t,done:false}));
+}
+function renderTodo(months){
+ $("#todoMonth").textContent=monthLabel(todoMonth);
+ const stored=checklists[todoMonth]; const items=stored?stored.items:defaultChecklist(todoMonth,months);
+ const f=$("#todo");
+ f.innerHTML=items.map(it=>`<div class="todo ${it.done?"done":""}"><input type="checkbox" id="c_${it.id}" ${it.done?"checked":""} data-id="${it.id}"><input type="text" id="t_${it.id}" value="${it.text.replace(/"/g,"&quot;")}" data-id="${it.id}"><button type="button" class="x" data-del="${it.id}" aria-label="Usuń">×</button></div>`).join("")||`<div class="empty">Pusta lista — dodaj punkt albo przywróć domyślne.</div>`;
+ const save=async(next)=>{ if(!db){$("#todoMsg").textContent="Brak bazy — zmiany nie zapiszą się.";return;} await db.doc("checklists/"+todoMonth).set({items:next,updatedAt:iso(new Date())}); };
+ const current=()=>[...f.querySelectorAll(".todo")].map(row=>({id:row.querySelector("[type=checkbox]").dataset.id,text:row.querySelector("[type=text]").value,done:row.querySelector("[type=checkbox]").checked}));
+ f.querySelectorAll("[type=checkbox]").forEach(c=>c.addEventListener("change",()=>{c.closest(".todo").classList.toggle("done",c.checked);save(current());}));
+ f.querySelectorAll("[type=text]").forEach(t=>t.addEventListener("change",()=>save(current())));
+ f.querySelectorAll("[data-del]").forEach(b=>b.addEventListener("click",()=>{b.closest(".todo").remove();save(current());}));
+ f.onsubmit=e=>e.preventDefault();
+ $("#todoAdd").onclick=()=>{const next=current();next.push({id:"u"+Date.now(),text:"",done:false});save(next).then(()=>{setTimeout(()=>{const last=f.querySelector(".todo:last-child [type=text]");if(last)last.focus();},100);});};
+ $("#todoReset").onclick=async()=>{ if(!db)return; await db.doc("checklists/"+todoMonth).delete(); };
+ $("#todoPrev").onclick=()=>{todoMonth=addMonths(todoMonth,-1);render();};
+ $("#todoNext").onclick=()=>{todoMonth=addMonths(todoMonth,1);render();};
+}
+function fillYearForm(){ const c=yearCfg(selYear);
+ $("#y_form").value=c.form;$("#y_ryczalt").value=c.ryczalt;$("#y_liniowy").value=c.liniowy;$("#y_vat").value=c.vat;$("#y_base").value=c.base;$("#y_avg").value=c.avg;$("#y_minwage").value=c.minWage;$("#y_hlimit").value=c.healthLimit;$("#y_chor").value=c.chorobowe; }
+$("#y_year").addEventListener("change",e=>{selYear=e.target.value;fillYearForm();});
+$("#y_copy").addEventListener("click",()=>{const prev=Object.keys(years).filter(k=>k<selYear).sort().pop(); if(!prev){$("#yearMsg").textContent="Brak wcześniejszego roku.";return;} const c={...YEAR_DEFAULTS,...years[prev]}; $("#y_form").value=c.form;$("#y_ryczalt").value=c.ryczalt;$("#y_liniowy").value=c.liniowy;$("#y_vat").value=c.vat;$("#y_base").value=c.base;$("#y_avg").value=c.avg;$("#y_minwage").value=c.minWage;$("#y_hlimit").value=c.healthLimit;$("#y_chor").value=c.chorobowe; $("#yearMsg").textContent=`Skopiowano z ${prev} — zapisz.`;});
+$("#yearForm").addEventListener("submit",async e=>{e.preventDefault(); const body={form:$("#y_form").value,ryczalt:+$("#y_ryczalt").value,liniowy:+$("#y_liniowy").value,vat:+$("#y_vat").value,base:+$("#y_base").value,avg:+$("#y_avg").value,minWage:+$("#y_minwage").value,healthLimit:+$("#y_hlimit").value,chorobowe:+$("#y_chor").value};
+ if(db){await db.doc("settings/"+selYear).set(body);$("#yearMsg").textContent="Zapisano rok "+selYear+".";}else{years[selYear]=body;render();$("#yearMsg").textContent="Zapisano lokalnie.";}
+ setTimeout(()=>$("#yearMsg").textContent="",2500);});
+document.addEventListener("focusout",()=>{ setTimeout(()=>{ if(pendingRender){const ae=document.activeElement; if(!(ae&&ae.closest&&ae.closest("form")&&ae.tagName!=="BUTTON")) render();} },50); });
+
+async function markPaid(monthKey,kind,toggle){ if(!db)return; const cur=payments[monthKey]||{}; const f=kind+"Paid"; const val=toggle?!cur[f]:true;
+ await db.doc("payments/"+monthKey).set({...cur,[f]:val,[f+"Date"]:val?iso(new Date()):null}); }
+async function setInvoicePaid(inv,paid){ if(!db||!inv)return; await db.doc("invoices/"+inv.id).update({paid,paidDate:paid?iso(new Date()):null}); }
+
+/* ---- forms ---- */
+$("#invForm").addEventListener("submit",async e=>{e.preventDefault();if(!db){$("#invMsg").textContent="Brak połączenia z bazą.";return;}
+ const hours=+$("#f_hours").value, rate=+($("#f_rate").value||settings.rate);
+ const net=r2(hours*rate), vat=r2(net*yearCfg($("#f_sale").value.slice(0,4)).vat/100);
+ const issue=$("#f_issue").value; let due=$("#f_due").value; if(!due){const d=pdate(issue);d.setUTCDate(d.getUTCDate()+ +settings.dueDays);due=iso(d);}
+ await db.collection("invoices").add({number:$("#f_number").value.trim(),saleDate:$("#f_sale").value,issueDate:issue,hours,rate,net,vat,gross:r2(net+vat),dueDate:due,paid:false,paidDate:null,source:"manual",createdAt:iso(new Date())});
+ e.target.reset(); $("#invMsg").textContent="Zapisano."; setTimeout(()=>$("#invMsg").textContent="",2500);});
+$("#setForm").addEventListener("submit",async e=>{e.preventDefault();
+ const t=$("#s_token").value; if(t){token=t;try{localStorage.setItem("fakturownia_token",t);}catch(err){}}
+ const body={rate:+$("#s_rate").value,dueDays:+$("#s_due").value,start:$("#s_start").value,chorobOd:$("#s_chorod").value||null,nrs:$("#s_nrs").value.trim(),mikro:$("#s_mikro").value.trim(),sub:$("#s_sub").value.trim()};
+ if(db){await db.doc("settings/main").set(body);$("#setMsg").textContent="Zapisano.";}else{settings={...settings,...body};render();$("#setMsg").textContent="Zapisano lokalnie (brak bazy).";}
+ $("#s_token").value=""; setTimeout(()=>$("#setMsg").textContent="",2500);});
+// default dates for manual invoice
+(function(){const t=localToday();const [y,mo]=t.split("-").map(Number);const lastPrev=new Date(Date.UTC(y,mo-1,0));$("#f_sale").value=iso(lastPrev);$("#f_issue").value=t;})();
+
+/* ---- Fakturownia sync ---- */
+async function upsertFromFakturownia(list){ let n=0,u=0;
+ for(const f of list){ if(!f||!f.number)continue; if(f.kind&&f.kind!=="vat")continue;
+  const hours=(f.positions||[]).reduce((s,p)=>s+(+p.quantity||0),0);
+  const body={number:f.number,saleDate:f.sell_date,issueDate:f.issue_date,hours,rate:+settings.rate,net:+f.price_net,vat:+f.price_tax,gross:+f.price_gross,dueDate:f.payment_to,paid:f.status==="paid",paidDate:f.paid_date||null,source:"fakturownia",fakturowniaId:f.id,ksef:f.gov_status||null,ksefId:f.gov_id||null,updatedAt:iso(new Date())};
+  const ex=invoices.find(i=>i.fakturowniaId===f.id)||invoices.find(i=>i.number===f.number);
+  if(ex){ const a={...ex};delete a.id;delete a.updatedAt;delete a.createdAt; const b={...a,...body};delete b.updatedAt; if(JSON.stringify(a)!==JSON.stringify(b)){const w={...ex,...body};delete w.id;await db.doc("invoices/"+ex.id).set(w);u++;} }
+  else { await db.doc("invoices/fakturownia-"+f.id).set(body); n++; }
+ }
+ return {n,u};
+}
+function apiUrl(){ return `https://${settings.sub}.fakturownia.pl/invoices.json?period=all&include_positions=true&per_page=100&api_token=${encodeURIComponent(token)}`; }
+function refreshApiLink(){ const a=$("#apiLink"); if(settings.sub&&token){a.href=apiUrl();a.style.pointerEvents="";a.style.opacity="";}else{a.href="#";a.style.pointerEvents="none";a.style.opacity=".5";} }
+$("#syncBtn").addEventListener("click",async()=>{
+ const msg=$("#syncMsg"); msg.className="msg"; if(!settings.sub){msg.textContent="Wpisz subdomenę w Ustawieniach.";return;} if(!token){msg.textContent="Wpisz token API w Ustawieniach.";return;} if(!db){msg.textContent="Brak połączenia z bazą.";return;}
+ msg.textContent="Pobieram…"; $("#syncBtn").disabled=true;
+ try{ const res=await fetch(apiUrl(),{headers:{Accept:"application/json"}}); if(!res.ok)throw new Error("HTTP "+res.status);
+  const {n,u}=await upsertFromFakturownia(await res.json()); msg.textContent=`Gotowe: ${n} nowych, ${u} zaktualizowanych.`;
+ }catch(err){ msg.className="msg err"; msg.textContent="Bezpośrednie pobranie zablokowane ("+(err.message||err)+") — użyj importu przez schowek poniżej."; }
+ $("#syncBtn").disabled=false;
+});
+$("#importBtn").addEventListener("click",async()=>{
+ const msg=$("#importMsg"); msg.className="msg"; if(!db){msg.textContent="Brak połączenia z bazą.";return;}
+ let txt=$("#pasteJson").value.trim(); if(!txt){msg.textContent="Wklej najpierw JSON.";return;}
+ try{ let data=JSON.parse(txt); if(!Array.isArray(data)) data=data.invoices||[data];
+  const {n,u}=await upsertFromFakturownia(data); msg.textContent=`Zaimportowano: ${n} nowych, ${u} zaktualizowanych.`; $("#pasteJson").value="";
+ }catch(err){ msg.className="msg err"; msg.textContent="To nie wygląda na JSON z Fakturowni: "+(err.message||err); }
+});
+
+/* ---- tabs ---- */
+document.querySelectorAll("nav [role=tab]").forEach(b=>b.addEventListener("click",()=>{document.querySelectorAll("nav [role=tab]").forEach(x=>x.setAttribute("aria-selected",x===b));document.querySelectorAll("section[role=tabpanel]").forEach(s=>s.hidden=s.id!=="tab-"+b.dataset.tab);try{localStorage.setItem("tab",b.dataset.tab);}catch(e){}}));
+try{const t=localStorage.getItem("tab");if(t){const b=document.querySelector(`nav [data-tab=${t}]`);if(b)b.click();}}catch(e){}
+
+/* ---- db ---- */
+render();
+(async()=>{
+ db=await claude.use("db");
+ if(!db){$("#status").textContent="Bez bazy — dane nie zapiszą się.";return;}
+ $("#status").textContent="Połączono";
+ db.collection("settings").onSnapshot(q=>{years={};let main={};q.docs.forEach(d=>{if(d.id==="main")main=d.data();else if(/^\d{4}$/.test(d.id))years[d.id]=d.data();});settings={...DEFAULTS,...main};render();},e=>$("#status").textContent="Błąd bazy: "+e.code);
+ db.collection("invoices").onSnapshot(q=>{invoices=q.docs.map(d=>({id:d.id,...d.data()}));render();},e=>$("#status").textContent="Błąd bazy: "+e.code);
+ db.collection("checklists").onSnapshot(q=>{checklists={};q.docs.forEach(d=>checklists[d.id]=d.data());render();},e=>$("#status").textContent="Błąd bazy: "+e.code);
+ db.collection("payments").onSnapshot(q=>{payments={};q.docs.forEach(d=>payments[d.id]=d.data());render();},e=>$("#status").textContent="Błąd bazy: "+e.code);
+})();
+})();
+</script>
+
+</body></html>

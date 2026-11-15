@@ -1,0 +1,152 @@
+{
+  "settings": {
+    "2026": {
+      "avg": 9228.64,
+      "base": 5652,
+      "chorobowe": 1,
+      "form": "ryczalt",
+      "healthLimit": 12900,
+      "liniowy": 19,
+      "minWage": 4806,
+      "ryczalt": 12,
+      "vat": 23
+    },
+    "main": {
+      "chorobOd": "2026-11-01",
+      "dueDays": 10,
+      "mikro": "PL50 1010 0071 2222 5252 3631 0100",
+      "nrs": "23 6000 0002 0260 0152 5236 3101",
+      "rate": 160,
+      "start": "2026-09-17",
+      "sub": "michalkulikowski7"
+    }
+  },
+  "invoices": {
+    "fakturownia-577685905": {
+      "dueDate": "2026-10-16",
+      "fakturowniaId": 577685905,
+      "gross": 20467.2,
+      "hours": 104,
+      "issueDate": "2026-10-09",
+      "ksef": "ok",
+      "ksefId": "5252363101-20261009-53A147800004-93",
+      "net": 16640,
+      "number": "1/10/2026",
+      "paid": true,
+      "paidDate": "2026-10-19",
+      "rate": 160,
+      "saleDate": "2026-09-30",
+      "source": "fakturownia",
+      "updatedAt": "2026-10-09",
+      "vat": 3827.2
+    },
+    "inv-2026-10": {
+      "createdAt": "2026-11-13",
+      "dueDate": "2026-11-12",
+      "gross": 35424,
+      "hours": 180,
+      "issueDate": "2026-11-02",
+      "net": 28800,
+      "note": "zaplacona splitem: VAT 6624 na rachunku VAT",
+      "number": "1/11/2026",
+      "paid": true,
+      "paidDate": "2026-11-13",
+      "rate": 160,
+      "saleDate": "2026-10-31",
+      "source": "manual",
+      "vat": 6624
+    }
+  },
+  "payments": {
+    "2026-09": {
+      "pitPaid": true,
+      "pitPaidDate": "2026-10-19",
+      "vatPaid": true,
+      "vatPaidDate": "2026-10-24",
+      "zusPaid": true,
+      "zusPaidDate": "2026-10-19"
+    }
+  },
+  "checklists": {
+    "2026-10": {
+      "items": [
+        {
+          "done": true,
+          "id": "d0",
+          "text": "Wygenerować raport miesięczny za wrz 2026 w systemie EY"
+        },
+        {
+          "done": true,
+          "id": "d1",
+          "text": "Raport godzin za wrz 2026 → akceptacja EY → billing@linkgroup.pl"
+        },
+        {
+          "done": true,
+          "id": "d2",
+          "text": "Faktura za wrz 2026 w Fakturowni → KSeF (data sprzedaży 30.09.2026)"
+        },
+        {
+          "done": true,
+          "id": "d3",
+          "text": "Do 20.10.2026: ZUS 1397,51 zł (DRA + przelew na NRS)"
+        },
+        {
+          "done": true,
+          "id": "d4",
+          "text": "Po wpływie od Link Group odłożyć 1397,51 zł"
+        }
+      ],
+      "updatedAt": "2026-10-24"
+    },
+    "2026-11": {
+      "items": [
+        {
+          "done": true,
+          "id": "d0",
+          "text": "Wygenerować raport miesięczny za paź 2026 w systemie EY"
+        },
+        {
+          "done": true,
+          "id": "d1",
+          "text": "Raport godzin za paź 2026 → akceptacja EY → billing@linkgroup.pl"
+        },
+        {
+          "done": true,
+          "id": "d2",
+          "text": "Faktura za paź 2026 w Fakturowni → KSeF (data sprzedaży 31.10.2026) — wystawiona 02.11.2026"
+        },
+        {
+          "done": true,
+          "id": "d3",
+          "text": "Po wpływie od Link Group odłożyć 12 244,64 zł (ZUS + PIT + VAT)"
+        },
+        {
+          "done": false,
+          "id": "d4",
+          "text": "Do 20.11.2026: złożyć ZUS DRA za paź 2026 (PUE/eZUS)"
+        },
+        {
+          "done": false,
+          "id": "d5",
+          "text": "Do 20.11.2026: przelew ZUS 2286,64 zł na NRS"
+        },
+        {
+          "done": false,
+          "id": "d6",
+          "text": "Do 20.11.2026: przelew ryczałtu PIT 3334,00 zł na mikrorachunek (symbol PPE, okres 26M10)"
+        },
+        {
+          "done": false,
+          "id": "d7",
+          "text": "Do 25.11.2026: wysłać JPK_V7M za paź 2026 (e-mikrofirma) i pobrać UPO"
+        },
+        {
+          "done": false,
+          "id": "d8",
+          "text": "Do 25.11.2026: przelew VAT 6624,00 zł na mikrorachunek (symbol VAT-7, okres 26M10)"
+        }
+      ],
+      "updatedAt": "2026-11-13"
+    }
+  }
+}
